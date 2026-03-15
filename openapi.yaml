@@ -66,25 +66,129 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpotSolutionResponse'
-              examples:
-                flop_root_oop:
-                  summary: "Flop root — BB (OOP) first to act on AcTd6h"
-                  externalValue: '../examples/spot-solution/1_flop_root_oop/response.json'
-                flop_check_ip:
-                  summary: "Flop after BB checks — BTN (IP) to act"
-                  externalValue: '../examples/spot-solution/2_flop_check_ip/response.json'
-                turn_root_oop:
-                  summary: "Turn root — BB (OOP) to act after flop X-X"
-                  externalValue: '../examples/spot-solution/3_turn_root_oop/response.json'
-                turn_check_ip:
-                  summary: "Turn after BB checks — BTN (IP) to act"
-                  externalValue: '../examples/spot-solution/4_turn_check_ip/response.json'
-                river_root_oop:
-                  summary: "River root — BB (OOP) to act after X-X, X-X"
-                  externalValue: '../examples/spot-solution/5_river_root_oop/response.json'
-                river_check_ip:
-                  summary: "River after BB checks — BTN (IP) to act"
-                  externalValue: '../examples/spot-solution/6_river_check_ip/response.json'
+              example:
+                action_solutions:
+                  - action:
+                      code: "X"
+                      position: "BB"
+                      type: "CHECK"
+                      betsize: "0"
+                      allin: false
+                      is_hand_end: false
+                      is_showdown: false
+                      next_street: false
+                      display_name: "CHECK"
+                      simple_group: "CHECK"
+                      advanced_group: "CHECK"
+                      betsize_by_pot: null
+                      next_position: "BTN"
+                    total_frequency: 0.9999958844696382
+                    strategy: [0.0, 0.0, 1.0, 1.0, 0.0]
+                    evs: [0.0, 0.0, 5.2, 4.8, 0.0]
+                  - action:
+                      code: "R1.8"
+                      position: "BB"
+                      type: "RAISE"
+                      betsize: "1.8"
+                      allin: false
+                      is_hand_end: false
+                      is_showdown: false
+                      next_street: false
+                      display_name: "BET"
+                      simple_group: "RAISE"
+                      advanced_group: "BET_SMALL"
+                      betsize_by_pot: 0.3272727272727273
+                      next_position: "BTN"
+                    total_frequency: 0.000004115530361819
+                    strategy: [0.0, 0.0, 0.0, 0.0, 0.0]
+                    evs: [0.0, 0.0, 0.0, 0.0, 0.0]
+                  - action:
+                      code: "RAI"
+                      position: "BB"
+                      type: "RAISE"
+                      betsize: "18.000"
+                      allin: true
+                      is_hand_end: false
+                      is_showdown: false
+                      next_street: false
+                      display_name: "ALLIN"
+                      simple_group: "RAISE"
+                      advanced_group: "BET_OVERBET"
+                      betsize_by_pot: 3.272727272727273
+                      next_position: "BTN"
+                    total_frequency: 0.0
+                    strategy: [0.0, 0.0, 0.0, 0.0, 0.0]
+                    evs: [0.0, 0.0, 0.0, 0.0, 0.0]
+                players_info:
+                  - player:
+                      relative_postflop_position: "IP"
+                      hand: null
+                      is_dealer: true
+                      is_folded: false
+                      is_hero: false
+                      is_active: false
+                      stack: "20.125"
+                      current_stack: "18.000"
+                      chips_on_table: "0"
+                      bounty: null
+                      profile: null
+                      position: "BTN"
+                      bounty_in_bb: null
+                      name: "B"
+                      seat: 5
+                    range: [0.0, 0.0, 0.42, 0.82]
+                  - player:
+                      relative_postflop_position: "OOP"
+                      hand: null
+                      is_dealer: false
+                      is_folded: false
+                      is_hero: true
+                      is_active: true
+                      stack: "20.125"
+                      current_stack: "18.000"
+                      chips_on_table: "0"
+                      bounty: null
+                      profile: null
+                      position: "BB"
+                      bounty_in_bb: null
+                      name: "B2"
+                      seat: 7
+                    range: [0.0, 0.0, 1.0, 1.0]
+                hand_categories_range: [-1, -1, 3, 3]
+                draw_categories_range: [-1, -1, -1, -1]
+                blocker_rate: [-1.0, -1.0, 0.05, 0.03]
+                unblocker_rate: [-1.0, -1.0, -0.02, -0.01]
+                blockers_frequencies:
+                  - card: "2s"
+                    actions:
+                      - action: "X"
+                        frequency: "-1.1621343032341969E-7"
+                game:
+                  players:
+                    - relative_postflop_position: "OOP"
+                      hand: null
+                      is_dealer: false
+                      is_folded: false
+                      is_hero: true
+                      is_active: true
+                      stack: "20.125"
+                      current_stack: "18.000"
+                      chips_on_table: "0"
+                      bounty: null
+                      profile: null
+                      position: "BB"
+                      bounty_in_bb: null
+                  current_street:
+                    type: "FLOP"
+                    start_pot: "5.500"
+                    end_pot: "5.500"
+                  pot: "5.500"
+                  pot_odds: null
+                  active_position: "BB"
+                  board: "AcTd6h"
+                  bet_display_name: "BET"
+                warning: null
+                hands_locked: null
         '400':
           description: Invalid request parameters
         '401':
@@ -121,25 +225,111 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NextActionsResponse'
-              examples:
-                flop_oop_check:
-                  summary: "After OOP checks on flop — IP to act"
-                  externalValue: '../examples/next-actions/1_flop_oop_check/response.json'
-                flop_ip_check:
-                  summary: "After IP checks on flop — street transition with lookahead"
-                  externalValue: '../examples/next-actions/2_flop_ip_check/response.json'
-                turn_oop_check:
-                  summary: "After OOP checks on turn — IP to act"
-                  externalValue: '../examples/next-actions/3_turn_oop_check/response.json'
-                turn_ip_check:
-                  summary: "After IP checks on turn — street transition with lookahead"
-                  externalValue: '../examples/next-actions/4_turn_ip_check/response.json'
-                river_oop_check:
-                  summary: "After OOP checks on river — IP to act"
-                  externalValue: '../examples/next-actions/5_river_oop_check/response.json'
-                river_ip_check:
-                  summary: "River check-check — showdown (terminal node)"
-                  externalValue: '../examples/next-actions/6_river_ip_check/response.json'
+              example:
+                next_actions:
+                  game:
+                    players:
+                      - position: "BB"
+                        relative_postflop_position: "OOP"
+                        hand: null
+                        is_dealer: false
+                        is_folded: false
+                        is_hero: false
+                        is_active: false
+                        stack: "20.125"
+                        current_stack: "18.000"
+                        chips_on_table: "0.00"
+                        bounty: null
+                        bounty_in_bb: null
+                        profile: null
+                      - position: "BTN"
+                        relative_postflop_position: "IP"
+                        hand: null
+                        is_dealer: true
+                        is_folded: false
+                        is_hero: true
+                        is_active: true
+                        stack: "20.125"
+                        current_stack: "18.000"
+                        chips_on_table: "0.00"
+                        bounty: null
+                        bounty_in_bb: null
+                        profile: null
+                    current_street:
+                      type: "FLOP"
+                      start_pot: "5.500"
+                      end_pot: "5.500"
+                    pot: "5.500"
+                    pot_odds: null
+                    active_position: "BTN"
+                    board: "AcTd6h"
+                    bet_display_name: "BET"
+                  available_actions:
+                    - action:
+                        code: "X"
+                        position: "BTN"
+                        type: "CHECK"
+                        betsize: "0.000"
+                        allin: false
+                        is_hand_end: false
+                        is_showdown: false
+                        next_street: true
+                        display_name: "CHECK"
+                        simple_group: "CHECK"
+                        advanced_group: "CHECK"
+                        betsize_by_pot: null
+                        next_position: "BB"
+                      frequency: null
+                      is_solution_end: false
+                      can_be_solved_by_ai: false
+                      next_position: "BB"
+                      selected: false
+                    - action:
+                        code: "R1.8"
+                        position: "BTN"
+                        type: "RAISE"
+                        betsize: "1.800"
+                        allin: false
+                        is_hand_end: false
+                        is_showdown: false
+                        next_street: false
+                        display_name: "BET"
+                        simple_group: "RAISE"
+                        advanced_group: "BET_SMALL"
+                        betsize_by_pot: 0.32727273
+                        next_position: "BB"
+                      frequency: null
+                      is_solution_end: false
+                      can_be_solved_by_ai: false
+                      next_position: "BB"
+                      selected: false
+                    - action:
+                        code: "RAI"
+                        position: "BTN"
+                        type: "RAISE"
+                        betsize: "18.000"
+                        allin: true
+                        is_hand_end: false
+                        is_showdown: false
+                        next_street: false
+                        display_name: "ALLIN"
+                        simple_group: "RAISE"
+                        advanced_group: "BET_OVERBET"
+                        betsize_by_pot: 3.27272727
+                        next_position: "BB"
+                      frequency: null
+                      is_solution_end: false
+                      can_be_solved_by_ai: false
+                      next_position: "BB"
+                      selected: false
+                  custom_solution_id: null
+                  is_node_locked: false
+                  is_edited: false
+                  forced_fold: false
+                  available_node_edits: null
+                  merged_actions: []
+                  preset_action_code: "X"
+                future_actions: []
         '400':
           description: Invalid request parameters
         '401':
@@ -183,6 +373,7 @@ components:
       name: stacks
       in: query
       required: false
+      allowEmptyValue: true
       description: Custom stack sizes (empty for equal stacks)
       schema:
         type: string
@@ -203,19 +394,22 @@ components:
     flop_actions:
       name: flop_actions
       in: query
-      required: true
+      required: false
+      allowEmptyValue: true
       description: |
-        Flop action sequence, dash-separated. Empty string for root node.
+        Flop action sequence, dash-separated. Empty string or omitted for root node.
         Codes: X=Check, F=Fold, C=Call, R{size}=Raise, RAI=All-in, B{frac}=Bet.
       schema:
         type: string
+        default: ""
       example: ""
 
     turn_actions:
       name: turn_actions
       in: query
-      required: true
-      description: Turn action sequence (empty if not on turn yet)
+      required: false
+      allowEmptyValue: true
+      description: Turn action sequence (empty or omitted if not on turn yet)
       schema:
         type: string
       example: ""
@@ -223,8 +417,9 @@ components:
     river_actions:
       name: river_actions
       in: query
-      required: true
-      description: River action sequence (empty if not on river yet)
+      required: false
+      allowEmptyValue: true
+      description: River action sequence (empty or omitted if not on river yet)
       schema:
         type: string
       example: ""

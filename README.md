@@ -94,3 +94,20 @@ All examples use the same hand:
 |----------|--------|--------|
 | `/{version}/solutions/spot-solution/` | GET | Documented |
 | `/{version}/poker/next-actions/` | GET | Documented |
+
+## Development
+
+**Swagger UI** (interactive docs):
+```bash
+npx swagger-ui-watcher openapi.yaml
+```
+
+**Mock API server** (queryable endpoints):
+```bash
+npx @stoplight/prism-cli mock openapi.yaml --port 3000
+```
+
+Example query:
+```bash
+curl "http://localhost:3000/v1/poker/next-actions?gametype=MTTGeneral&depth=20.125&preflop_actions=F-F-F-F-F-R2-F-C&flop_actions=X&board=AcTd6h"
+```
