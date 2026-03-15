@@ -1,0 +1,658 @@
+openapi: 3.0.3
+info:
+  title: GTO Wizard Postflop API
+  description: |
+    Reverse-engineered API specification for the GTO Wizard postflop solver.
+
+    Two endpoints power the postflop solution UI:
+    - **Spot Solution** — returns full GTO strategy data (strategy frequencies, EVs, ranges, blockers) for all 1326 hand combinations
+    - **Next Actions** — lightweight navigation endpoint returning available actions at the next decision node
+
+    ### Hand Combo Indexing
+
+    All 1326-element arrays use the same indexing scheme. Cards are numbered `card_index = rank * 4 + suit`
+    where rank ∈ [0..12] (2..A) and suit ∈ [0..3] (clubs, diamonds, hearts, spades).
+
+    The 1326 combos are enumerated as:
+    ```
+    index = 0
+    for c1 in 0..52:
+        for c2 in (c1+1)..52:
+            combos[index] = (c1, c2)
+            index += 1
+    ```
+
+    Hands containing board cards are zeroed out in all arrays.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:3000
+    description: Local development
+
+security:
+  - bearerAuth: []
+    clientId: []
+
+tags:
+  - name: Solutions
+    description: Full GTO strategy data
+  - name: Navigation
+    description: Lightweight game tree navigation
+
+paths:
+  /v1/solutions/spot-solution:
+    get:
+      operationId: getSpotSolution
+      tags: [Solutions]
+      summary: Get GTO strategy for a decision node
+      description: |
+        Returns the complete GTO solution at a decision node including strategy frequencies,
+        expected values, ranges, blockers, and hand categories for all 1326 hand combinations.
+
+        Response is ~960KB uncompressed. Use `Accept-Encoding: gzip` for ~200KB.
+      parameters:
+        - $ref: '#/components/parameters/gametype'
+        - $ref: '#/components/parameters/depth'
+        - $ref: '#/components/parameters/stacks'
+        - $ref: '#/components/parameters/preflop_actions'
+        - $ref: '#/components/parameters/flop_actions'
+        - $ref: '#/components/parameters/turn_actions'
+        - $ref: '#/components/parameters/river_actions'
+        - $ref: '#/components/parameters/board'
+      responses:
+        '200':
+          description: GTO strategy solution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpotSolutionResponse'
+              examples:
+                flop_root_oop:
+                  summary: "Flop root — BB (OOP) first to act on AcTd6h"
+                  externalValue: '../examples/spot-solution/1_flop_root_oop/response.json'
+                flop_check_ip:
+                  summary: "Flop after BB checks — BTN (IP) to act"
+                  externalValue: '../examples/spot-solution/2_flop_check_ip/response.json'
+                turn_root_oop:
+                  summary: "Turn root — BB (OOP) to act after flop X-X"
+                  externalValue: '../examples/spot-solution/3_turn_root_oop/response.json'
+                turn_check_ip:
+                  summary: "Turn after BB checks — BTN (IP) to act"
+                  externalValue: '../examples/spot-solution/4_turn_check_ip/response.json'
+                river_root_oop:
+                  summary: "River root — BB (OOP) to act after X-X, X-X"
+                  externalValue: '../examples/spot-solution/5_river_root_oop/response.json'
+                river_check_ip:
+                  summary: "River after BB checks — BTN (IP) to act"
+                  externalValue: '../examples/spot-solution/6_river_check_ip/response.json'
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized — invalid or expired token
+        '404':
+          description: Solution not found
+
+  /v1/poker/next-actions:
+    get:
+      operationId: getNextActions
+      tags: [Navigation]
+      summary: Get available actions at the next decision node
+      description: |
+        Lightweight endpoint returning available actions at the next node in the game tree.
+        No strategy arrays or EVs — just action metadata and game state.
+
+        Called when the user clicks an action to navigate forward in the game tree.
+
+        The `future_actions` array provides lookahead for street transitions (when both
+        players check and the game advances to the next street).
+      parameters:
+        - $ref: '#/components/parameters/gametype'
+        - $ref: '#/components/parameters/depth'
+        - $ref: '#/components/parameters/stacks'
+        - $ref: '#/components/parameters/preflop_actions'
+        - $ref: '#/components/parameters/flop_actions'
+        - $ref: '#/components/parameters/turn_actions'
+        - $ref: '#/components/parameters/river_actions'
+        - $ref: '#/components/parameters/board'
+      responses:
+        '200':
+          description: Available actions at the next node
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextActionsResponse'
+              examples:
+                flop_oop_check:
+                  summary: "After OOP checks on flop — IP to act"
+                  externalValue: '../examples/next-actions/1_flop_oop_check/response.json'
+                flop_ip_check:
+                  summary: "After IP checks on flop — street transition with lookahead"
+                  externalValue: '../examples/next-actions/2_flop_ip_check/response.json'
+                turn_oop_check:
+                  summary: "After OOP checks on turn — IP to act"
+                  externalValue: '../examples/next-actions/3_turn_oop_check/response.json'
+                turn_ip_check:
+                  summary: "After IP checks on turn — street transition with lookahead"
+                  externalValue: '../examples/next-actions/4_turn_ip_check/response.json'
+                river_oop_check:
+                  summary: "After OOP checks on river — IP to act"
+                  externalValue: '../examples/next-actions/5_river_oop_check/response.json'
+                river_ip_check:
+                  summary: "River check-check — showdown (terminal node)"
+                  externalValue: '../examples/next-actions/6_river_ip_check/response.json'
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized — invalid or expired token
+        '404':
+          description: Solution not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Short-lived access token (~15 min)
+    clientId:
+      type: apiKey
+      in: header
+      name: gwclientid
+      description: Client identifier (UUID)
+
+  parameters:
+    gametype:
+      name: gametype
+      in: query
+      required: true
+      description: "Game format identifier (e.g., MTTGeneral, CashGame)"
+      schema:
+        type: string
+      example: MTTGeneral
+
+    depth:
+      name: depth
+      in: query
+      required: true
+      description: Starting stack depth in big blinds
+      schema:
+        type: string
+      example: "20.125"
+
+    stacks:
+      name: stacks
+      in: query
+      required: false
+      description: Custom stack sizes (empty for equal stacks)
+      schema:
+        type: string
+      example: ""
+
+    preflop_actions:
+      name: preflop_actions
+      in: query
+      required: true
+      description: |
+        Full preflop action sequence, dash-separated.
+        Each seat acts in order: UTG, UTG+1, LJ, HJ, CO, BTN, SB, BB.
+        Codes: F=Fold, C=Call, R{size}=Raise (e.g., R2=raise to 2bb).
+      schema:
+        type: string
+      example: F-F-F-F-F-R2-F-C
+
+    flop_actions:
+      name: flop_actions
+      in: query
+      required: true
+      description: |
+        Flop action sequence, dash-separated. Empty string for root node.
+        Codes: X=Check, F=Fold, C=Call, R{size}=Raise, RAI=All-in, B{frac}=Bet.
+      schema:
+        type: string
+      example: ""
+
+    turn_actions:
+      name: turn_actions
+      in: query
+      required: true
+      description: Turn action sequence (empty if not on turn yet)
+      schema:
+        type: string
+      example: ""
+
+    river_actions:
+      name: river_actions
+      in: query
+      required: true
+      description: River action sequence (empty if not on river yet)
+      schema:
+        type: string
+      example: ""
+
+    board:
+      name: board
+      in: query
+      required: true
+      description: |
+        Board cards. 6 chars for flop, 8 for turn, 10 for river.
+        Each card is rank + suit (e.g., Ac, Td, 6h).
+      schema:
+        type: string
+      example: AcTd6h
+
+  schemas:
+    # ─── Spot Solution ───
+
+    SpotSolutionResponse:
+      type: object
+      required:
+        - action_solutions
+        - players_info
+        - hand_categories_range
+        - draw_categories_range
+        - blocker_rate
+        - unblocker_rate
+        - blockers_frequencies
+        - game
+      properties:
+        action_solutions:
+          type: array
+          description: Strategy data for each available action at this node
+          items:
+            $ref: '#/components/schemas/ActionSolution'
+        players_info:
+          type: array
+          description: Both active (non-folded) players with preflop ranges
+          items:
+            $ref: '#/components/schemas/PlayerInfo'
+        hand_categories_range:
+          type: array
+          description: "Hand category per combo. -1 = not in range. Length: 1326."
+          items:
+            type: integer
+        draw_categories_range:
+          type: array
+          description: "Draw category per combo. -1 = not in range. Length: 1326."
+          items:
+            type: integer
+        blocker_rate:
+          type: array
+          description: "Blocker effect per combo. -1 = not in range. Length: 1326."
+          items:
+            type: number
+        unblocker_rate:
+          type: array
+          description: "Unblocker effect per combo. -1 = not in range. Length: 1326."
+          items:
+            type: number
+        blockers_frequencies:
+          type: array
+          description: Per-card blocker frequencies for each action (49 remaining cards)
+          items:
+            $ref: '#/components/schemas/BlockerFrequency'
+        game:
+          $ref: '#/components/schemas/Game'
+        warning:
+          type: string
+          nullable: true
+          description: Warning message if applicable
+        hands_locked:
+          type: string
+          nullable: true
+          description: Paywall/access lock indicator
+
+    ActionSolution:
+      type: object
+      required: [action, total_frequency, strategy, evs]
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionDef'
+        total_frequency:
+          type: number
+          format: double
+          description: "Weighted average frequency across all in-range hands [0.0, 1.0]"
+          minimum: 0
+          maximum: 1
+        strategy:
+          type: array
+          description: "Probability of taking this action for each hand combo. Length: 1326."
+          items:
+            type: number
+            format: double
+        evs:
+          type: array
+          description: "Expected value in chips for each hand combo. Length: 1326."
+          items:
+            type: number
+            format: double
+
+    # ─── Next Actions ───
+
+    NextActionsResponse:
+      type: object
+      required: [next_actions, future_actions]
+      properties:
+        next_actions:
+          $ref: '#/components/schemas/NextActionsNode'
+        future_actions:
+          type: array
+          description: |
+            Lookahead nodes for street transitions. Populated when both players check
+            and the game advances to the next street. Empty array otherwise.
+          items:
+            $ref: '#/components/schemas/NextActionsNode'
+
+    NextActionsNode:
+      type: object
+      required:
+        - game
+        - available_actions
+        - is_node_locked
+        - is_edited
+        - forced_fold
+        - merged_actions
+      properties:
+        game:
+          $ref: '#/components/schemas/Game'
+        available_actions:
+          type: array
+          description: Actions available at this node. Empty array at terminal nodes (showdown).
+          items:
+            $ref: '#/components/schemas/AvailableAction'
+        custom_solution_id:
+          type: string
+          nullable: true
+          description: Custom solution override ID
+        is_node_locked:
+          type: boolean
+          description: Whether this node is locked behind paywall
+        is_edited:
+          type: boolean
+          description: Whether this node has been manually edited
+        forced_fold:
+          type: boolean
+          description: Whether a fold is forced at this node
+        available_node_edits:
+          type: object
+          nullable: true
+          description: Available node edit options
+        merged_actions:
+          type: array
+          description: List of action codes that have been merged
+          items:
+            type: string
+        preset_action_code:
+          type: string
+          nullable: true
+          description: "Default action hint for UI selection. null at terminal nodes."
+
+    AvailableAction:
+      type: object
+      required: [action, is_solution_end, can_be_solved_by_ai, next_position, selected]
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionDef'
+        frequency:
+          type: number
+          format: double
+          nullable: true
+          description: "Overall frequency. null in next-actions (only spot-solution provides this)."
+        is_solution_end:
+          type: boolean
+          description: Whether taking this action reaches a terminal node
+        can_be_solved_by_ai:
+          type: boolean
+          description: Whether AI solver is available for the resulting node
+        next_position:
+          type: string
+          description: Position of the next player to act
+        selected:
+          type: boolean
+          description: Whether this action is currently selected in the UI
+
+    # ─── Shared Schemas ───
+
+    ActionDef:
+      type: object
+      description: Action metadata shared between spot-solution and next-actions
+      required:
+        - code
+        - position
+        - type
+        - betsize
+        - allin
+        - is_hand_end
+        - is_showdown
+        - next_street
+        - display_name
+        - simple_group
+        - advanced_group
+        - next_position
+      properties:
+        code:
+          type: string
+          description: "Action code: X, F, C, R{size}, RAI, B{frac}"
+          example: "X"
+        position:
+          type: string
+          description: Position of the acting player
+          enum: [BB, SB, BTN, CO, HJ, LJ, UTG+1, UTG]
+          example: "BB"
+        type:
+          type: string
+          description: Action type
+          enum: [CHECK, FOLD, CALL, BET, RAISE, ALLIN]
+          example: "CHECK"
+        betsize:
+          type: string
+          description: "Bet/raise size in big blinds. \"0\" for check/fold."
+          example: "0"
+        allin:
+          type: boolean
+          description: Whether this action is all-in
+        is_hand_end:
+          type: boolean
+          description: Whether this action ends the hand (e.g., fold)
+        is_showdown:
+          type: boolean
+          description: Whether this action leads to showdown (river check)
+        next_street:
+          type: boolean
+          description: Whether this action advances to the next street (check-check)
+        display_name:
+          type: string
+          description: "Human-readable label"
+          enum: [CHECK, BET, ALLIN, CALL, FOLD]
+          example: "CHECK"
+        simple_group:
+          type: string
+          description: Simple grouping for UI
+          enum: [CHECK, RAISE, CALL, FOLD]
+          example: "CHECK"
+        advanced_group:
+          type: string
+          description: Detailed grouping for UI
+          enum: [CHECK, BET_SMALL, BET_MEDIUM, BET_LARGE, BET_OVERBET, CALL, FOLD]
+          example: "CHECK"
+        betsize_by_pot:
+          type: number
+          format: double
+          nullable: true
+          description: "Bet size as fraction of pot. null for check/fold/call."
+        next_position:
+          type: string
+          description: Position of the next player to act
+          example: "BTN"
+
+    Game:
+      type: object
+      description: Full game state at the current decision point
+      required:
+        - players
+        - current_street
+        - pot
+        - active_position
+        - board
+        - bet_display_name
+      properties:
+        players:
+          type: array
+          description: All seats at the table (including folded players)
+          items:
+            $ref: '#/components/schemas/GamePlayer'
+        current_street:
+          $ref: '#/components/schemas/StreetInfo'
+        pot:
+          type: string
+          description: Total pot size in BB
+          example: "5.500"
+        pot_odds:
+          type: string
+          nullable: true
+          description: Pot odds for the active player (when facing a bet)
+        active_position:
+          type: string
+          description: Position of the player to act
+          example: "BB"
+        board:
+          type: string
+          description: "Board cards (6/8/10 chars for flop/turn/river)"
+          example: "AcTd6h"
+        bet_display_name:
+          type: string
+          description: How the first aggression is labeled
+          example: "BET"
+
+    StreetInfo:
+      type: object
+      required: [type, start_pot, end_pot]
+      properties:
+        type:
+          type: string
+          enum: [FLOP, TURN, RIVER]
+          description: Current street
+        start_pot:
+          type: string
+          description: Pot size at the start of this street
+          example: "5.500"
+        end_pot:
+          type: string
+          description: Pot size at the end of this street (after current actions)
+          example: "5.500"
+
+    GamePlayer:
+      type: object
+      description: Player state at a table seat
+      required:
+        - position
+        - is_dealer
+        - is_folded
+        - is_hero
+        - is_active
+        - stack
+        - current_stack
+        - chips_on_table
+      properties:
+        relative_postflop_position:
+          type: string
+          nullable: true
+          description: "\"OOP\" or \"IP\" for active players, null for folded"
+          enum: [OOP, IP]
+        hand:
+          type: string
+          nullable: true
+          description: Specific hand (null in solution mode)
+        is_dealer:
+          type: boolean
+          description: Whether this player is the dealer
+        is_folded:
+          type: boolean
+          description: Whether this player folded preflop
+        is_hero:
+          type: boolean
+          description: Whether this is the hero (active decision maker)
+        is_active:
+          type: boolean
+          description: Whether it's this player's turn to act
+        stack:
+          type: string
+          description: Starting stack in BB
+          example: "20.125"
+        current_stack:
+          type: string
+          description: Remaining stack (after preflop betting)
+          example: "18.000"
+        chips_on_table:
+          type: string
+          description: Chips currently committed on this street
+          example: "0"
+        bounty:
+          type: string
+          nullable: true
+          description: Bounty amount (MTT bounty formats)
+        profile:
+          type: string
+          nullable: true
+          description: Player profile identifier
+        position:
+          type: string
+          description: Table position
+          enum: [BB, SB, BTN, CO, HJ, LJ, UTG+1, UTG]
+          example: "BB"
+        bounty_in_bb:
+          type: string
+          nullable: true
+          description: Bounty expressed in big blinds
+
+    PlayerInfo:
+      type: object
+      description: Active player with preflop range (only in spot-solution)
+      required: [player, range]
+      properties:
+        player:
+          allOf:
+            - $ref: '#/components/schemas/GamePlayer'
+            - type: object
+              properties:
+                name:
+                  type: string
+                  description: Short display name
+                  example: "B"
+                seat:
+                  type: integer
+                  description: Seat number
+                  example: 5
+        range:
+          type: array
+          description: "Preflop range frequency for each hand combo [0.0, 1.0]. Length: 1326."
+          items:
+            type: number
+            format: double
+
+    BlockerFrequency:
+      type: object
+      description: Per-card blocker data (49 remaining cards after board)
+      required: [card, actions]
+      properties:
+        card:
+          type: string
+          description: Card name
+          example: "2s"
+        actions:
+          type: array
+          description: Frequency shift per action when holding this card
+          items:
+            $ref: '#/components/schemas/BlockerAction'
+
+    BlockerAction:
+      type: object
+      required: [action, frequency]
+      properties:
+        action:
+          type: string
+          description: "Action code (matches action_solutions[].action.code)"
+          example: "X"
+        frequency:
+          type: string
+          description: Frequency delta (how much holding this card shifts the action frequency)
+          example: "-1.1621343032341969E-7"
