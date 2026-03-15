@@ -1,0 +1,18 @@
+curl 'https://api.gtowizard.com/v1/poker/next-actions/?gametype=MTTGeneral&depth=20.125&stacks=&preflop_actions=F-F-F-F-F-R2-F-C&flop_actions=X-X&turn_actions=X-X&river_actions=&board=AcTd6hTh' \
+  -H 'accept: application/json, text/plain, */*' \
+  -H 'accept-language: en-US,en;q=0.9' \
+  -H 'authorization: Bearer <REDACTED>' \
+  -H 'cache-control: no-cache' \
+  -H 'gwclientid: 0f1a4cab-07b4-45b4-8572-f89c122d447f' \
+  -H 'origin: https://app.gtowizard.com' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://app.gtowizard.com/' \
+  -H 'sec-ch-ua: "Not:A-Brand";v="99", "Brave";v="145", "Chromium";v="145"' \
+  -H 'sec-ch-ua-mobile: ?1' \
+  -H 'sec-ch-ua-platform: "Android"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-site' \
+  -H 'sec-gpc: 1' \
+  -H 'user-agent: Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36'
