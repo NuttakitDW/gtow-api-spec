@@ -26,7 +26,7 @@ Same parameters as the spot-solution endpoint.
 | `gametype` | string | Yes | `MTTGeneral` | Game format identifier |
 | `depth` | string | Yes | `20.125` | Starting stack depth in big blinds |
 | `stacks` | string | No | _(empty)_ | Custom stack sizes (omit for equal stacks) |
-| `preflop_actions` | string | Yes | `F-F-F-F-F-R2-F-C` | Full preflop action sequence |
+| `preflop_actions` | string | Yes | `F-F-F-F-F-F-R2-F-C` | Full preflop action sequence |
 | `flop_actions` | string | Yes | `X` | Flop action sequence |
 | `turn_actions` | string | Yes | _(empty)_ | Turn action sequence |
 | `river_actions` | string | Yes | _(empty)_ | River action sequence |

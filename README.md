@@ -83,7 +83,7 @@ Each example folder contains:
 
 All examples use the same hand:
 
-- **Format:** 8-handed MTT, 20bb effective
+- **Format:** 9-handed MTT, 20bb effective
 - **Preflop:** BTN opens to 2bb, BB calls
 - **Board:** Ac Td 6h (flop) / Th (turn) / Ah (river)
 - **Line:** Check-check on every street to showdown
@@ -110,12 +110,68 @@ npx @stoplight/prism-cli mock openapi.yaml --port 3000
 Example queries (auth headers required):
 ```bash
 # Next Actions
-curl "http://localhost:3000/v1/poker/next-actions?gametype=MTTGeneral&depth=20.125&preflop_actions=F-F-F-F-F-R2-F-C&flop_actions=X&board=AcTd6h" \
+curl "http://localhost:3000/v1/poker/next-actions?gametype=MTTGeneral&depth=20.125&preflop_actions=F-F-F-F-F-F-R2-F-C&flop_actions=X&board=AcTd6h" \
   -H "Authorization: Bearer test" \
   -H "gwclientid: test"
 
 # Spot Solution
-curl "http://localhost:3000/v1/solutions/spot-solution?gametype=MTTGeneral&depth=20.125&preflop_actions=F-F-F-F-F-R2-F-C&board=AcTd6h" \
+curl "http://localhost:3000/v1/solutions/spot-solution?gametype=MTTGeneral&depth=20.125&preflop_actions=F-F-F-F-F-F-R2-F-C&board=AcTd6h" \
   -H "Authorization: Bearer test" \
   -H "gwclientid: test"
 ```
+
+## Patch: 9-Handed Table (vs Original 8-Handed)
+
+This spec extends the original GTO Wizard API from **8-handed** to **9-handed** tables. Below are the key differences:
+
+### Seat Order
+
+| | 8-Handed (original) | 9-Handed (this spec) |
+|---|---|---|
+| **Seats** | UTG, UTG+1, LJ, HJ, CO, BTN, SB, BB | UTG, UTG+1, **UTG+2**, LJ, HJ, CO, BTN, SB, BB |
+| **Total positions** | 8 | 9 |
+
+### Preflop Action Sequence
+
+The `preflop_actions` parameter gains one additional action for the UTG+2 seat:
+
+```diff
+- F-F-F-F-F-R2-F-C          (8 actions)
++ F-F-F-F-F-F-R2-F-C        (9 actions)
+  │ │ │ │ │ │ │   │ └─ BB
+  │ │ │ │ │ │ │   └─── SB
+  │ │ │ │ │ │ └─────── BTN
+  │ │ │ │ │ └───────── CO
+  │ │ │ │ └─────────── HJ
+  │ │ │ └───────────── LJ
++ │ │ └─────────────── UTG+2 (new)
+  │ └─────────────────  UTG+1
+  └───────────────────  UTG
+```
+
+### Game State — `game.players` Array
+
+Responses include **9 player objects** instead of 8. The additional player (UTG+2) appears after UTG+1:
+
+```json
+{ "position": "UTG",   "is_folded": true, ... },
+{ "position": "UTG+1", "is_folded": true, ... },
+{ "position": "UTG+2", "is_folded": true, ... },  // added
+{ "position": "LJ",    "is_folded": true, ... },
+...
+```
+
+### Position Enum
+
+The `position` field now includes `UTG+2`:
+
+```
+[BB, SB, BTN, CO, HJ, LJ, UTG+2, UTG+1, UTG]
+```
+
+### What Stays the Same
+
+- All postflop logic, strategy arrays, EV calculations, and hand indexing (1326 combos) are unchanged
+- Board encoding, action codes (X, F, C, R{size}, RAI), and response schemas remain identical
+- The pot size (`5.500` for BTN open + BB call) stays the same since only UTG+2 folds preflop
+- Stack sizes and bounty fields are unaffected

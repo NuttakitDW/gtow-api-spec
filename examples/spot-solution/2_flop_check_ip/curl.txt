@@ -1,4 +1,4 @@
-curl 'https://api.{DOMAIN}.com/{version}/solutions/spot-solution/?gametype=MTTGeneral&depth=20.125&stacks=&preflop_actions=F-F-F-F-F-R2-F-C&flop_actions=X&turn_actions=&river_actions=&board=AcTd6h' \
+curl 'https://api.{DOMAIN}.com/{version}/solutions/spot-solution/?gametype=MTTGeneral&depth=20.125&stacks=&preflop_actions=F-F-F-F-F-F-R2-F-C&flop_actions=X&turn_actions=&river_actions=&board=AcTd6h' \
   -H 'accept: application/json, text/plain, */*' \
   -H 'accept-language: en-US,en;q=0.9' \
   -H 'authorization: Bearer <REDACTED>' \

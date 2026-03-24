@@ -22,7 +22,7 @@ GET https://api.{DOMAIN}.com/{version}/solutions/spot-solution/
 | `gametype` | string | Yes | `MTTGeneral` | Game format identifier |
 | `depth` | string | Yes | `20.125` | Starting stack depth in big blinds |
 | `stacks` | string | No | _(empty)_ | Custom stack sizes (omit for equal stacks) |
-| `preflop_actions` | string | Yes | `F-F-F-F-F-R2-F-C` | Full preflop action sequence |
+| `preflop_actions` | string | Yes | `F-F-F-F-F-F-R2-F-C` | Full preflop action sequence |
 | `flop_actions` | string | Yes | _(empty)_ | Flop action sequence (empty string = root node) |
 | `turn_actions` | string | Yes | _(empty)_ | Turn action sequence |
 | `river_actions` | string | Yes | _(empty)_ | River action sequence |
@@ -43,18 +43,19 @@ Actions are separated by `-`:
 
 ### Preflop Action Sequence
 
-The `preflop_actions` field encodes every seat's action in order. For example in an 8-handed MTT:
+The `preflop_actions` field encodes every seat's action in order. For example in a 9-handed MTT:
 
 ```
-F-F-F-F-F-R2-F-C
-│ │ │ │ │ │   │ └─ BB calls
-│ │ │ │ │ │   └─── SB folds
-│ │ │ │ │ └─────── BTN raises to 2 BB
-│ │ │ │ └───────── CO folds
-│ │ │ └─────────── HJ folds
-│ │ └───────────── LJ folds
-│ └─────────────── UTG+1 folds
-└───────────────── UTG folds
+F-F-F-F-F-F-R2-F-C
+│ │ │ │ │ │ │   │ └─ BB calls
+│ │ │ │ │ │ │   └─── SB folds
+│ │ │ │ │ │ └─────── BTN raises to 2 BB
+│ │ │ │ │ └───────── CO folds
+│ │ │ │ └─────────── HJ folds
+│ │ │ └───────────── LJ folds
+│ │ └─────────────── UTG+2 folds
+│ └─────────────────  UTG+1 folds
+└───────────────────  UTG folds
 ```
 
 ---
@@ -255,7 +256,7 @@ Full game state at the current decision point.
 
 #### Game Players vs PlayerInfo Players
 
-- `game.players` — All 8 seats including folded players. No `range` array. No `name` or `seat` fields.
+- `game.players` — All 9 seats including folded players. No `range` array. No `name` or `seat` fields.
 - `players_info` — Only the 2 active (non-folded) postflop players. Includes `range[1326]`, `name`, and `seat`.
 
 ---
@@ -364,10 +365,10 @@ Hands containing board cards have `0.0` in all arrays (strategy, EVs, range). Fo
 ### Request
 
 ```
-GET /{version}/solutions/spot-solution/?gametype=MTTGeneral&depth=20.125&stacks=&preflop_actions=F-F-F-F-F-R2-F-C&flop_actions=&turn_actions=&river_actions=&board=AcTd6h
+GET /{version}/solutions/spot-solution/?gametype=MTTGeneral&depth=20.125&stacks=&preflop_actions=F-F-F-F-F-F-R2-F-C&flop_actions=&turn_actions=&river_actions=&board=AcTd6h
 ```
 
-**Scenario:** 8-handed MTT, 20bb effective. BTN opens to 2bb, BB calls. Flop is Ac Td 6h. BB (OOP) is first to act.
+**Scenario:** 9-handed MTT, 20bb effective. BTN opens to 2bb, BB calls. Flop is Ac Td 6h. BB (OOP) is first to act.
 
 ### Response Summary
 

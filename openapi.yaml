@@ -385,11 +385,11 @@ components:
       required: true
       description: |
         Full preflop action sequence, dash-separated.
-        Each seat acts in order: UTG, UTG+1, LJ, HJ, CO, BTN, SB, BB.
+        Each seat acts in order: UTG, UTG+1, UTG+2, LJ, HJ, CO, BTN, SB, BB.
         Codes: F=Fold, C=Call, R{size}=Raise (e.g., R2=raise to 2bb).
       schema:
         type: string
-      example: F-F-F-F-F-R2-F-C
+      example: F-F-F-F-F-F-R2-F-C
 
     flop_actions:
       name: flop_actions
@@ -631,7 +631,7 @@ components:
         position:
           type: string
           description: Position of the acting player
-          enum: [BB, SB, BTN, CO, HJ, LJ, UTG+1, UTG]
+          enum: [BB, SB, BTN, CO, HJ, LJ, UTG+2, UTG+1, UTG]
           example: "BB"
         type:
           type: string
@@ -792,7 +792,7 @@ components:
         position:
           type: string
           description: Table position
-          enum: [BB, SB, BTN, CO, HJ, LJ, UTG+1, UTG]
+          enum: [BB, SB, BTN, CO, HJ, LJ, UTG+2, UTG+1, UTG]
           example: "BB"
         bounty_in_bb:
           type: string

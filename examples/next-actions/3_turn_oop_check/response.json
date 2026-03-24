@@ -34,6 +34,21 @@
                     "profile": null
                 },
                 {
+                    "position": "UTG+2",
+                    "relative_postflop_position": null,
+                    "hand": null,
+                    "is_dealer": false,
+                    "is_folded": true,
+                    "is_hero": false,
+                    "is_active": false,
+                    "stack": "20.125",
+                    "current_stack": "20.000",
+                    "chips_on_table": "0.00",
+                    "bounty": null,
+                    "bounty_in_bb": null,
+                    "profile": null
+                },
+                {
                     "position": "LJ",
                     "relative_postflop_position": null,
                     "hand": null,
